@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+release_file="/etc/os-release"
+now="$(date +"%Y-%m-%d-%H-%M-%S")"
+parent_folder="$HOME/projects"
+
+function git_init() {
+  if ! command -v git > /dev/null 2>&1
+  then
+    echo "Git isn't installed."
+    echo "Installing..."
+
+    if grep -q "Ubuntu" $release_file
+    then
+      sudo apt-get install git-all
+    fi
+  fi
+
+ if [[ -d ".git" ]]; then
+   echo "The repository already exists."
+   exit 1
+ fi
+
+  git init
+  echo ".gitignore" >> ".gitignore"
+  touch "README.md"
+  git add -A
+  git commit -m "project init"
+  git branch -M "main"
+  git branch dev && git switch dev
+}
+
+if [ $# -ge 1 ]; then
+	folder_name="$now-$1"
+else
+	folder_name="$now"
+fi
+
+if [[ -d "$parent_folder/$folder_name" ]]; then
+  echo "The project folder already exists."
+  exit 2
+fi
+
+mkdir -p "$parent_folder/$folder_name"
+cd "$parent_folder/$folder_name"
+
+git_init
